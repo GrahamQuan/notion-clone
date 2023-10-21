@@ -11,6 +11,7 @@ import { Title } from './title'
 import { Banner } from './banner'
 import { Menu } from './menu'
 import { Publish } from './publish'
+import { Breadcrumbs } from './breadcrumbs'
 
 interface NavbarProps {
   isCollapsed: boolean
@@ -24,7 +25,11 @@ export const Navbar = ({ isCollapsed, onResetWidth }: NavbarProps) => {
     documentId: params.documentId as Id<'documents'>,
   })
 
-  if (document === undefined) {
+  const withParentsDocs = useQuery(api.documents.getParentDocs, {
+    childDocumentId: params.documentId as Id<'documents'>,
+  })
+
+  if (document === undefined || withParentsDocs === undefined) {
     return (
       <nav className="bg-background dark:bg-[#1F1F1F] px-3 py-2 w-full flex items-center justify-between">
         <Title.Skeleton />
@@ -50,7 +55,7 @@ export const Navbar = ({ isCollapsed, onResetWidth }: NavbarProps) => {
           />
         )}
         <div className="flex items-center justify-between w-full">
-          <Title initialData={document} />
+          <Breadcrumbs docsList={withParentsDocs} />
           <div className="flex items-center gap-x-2">
             <Publish initialData={document} />
             <Menu documentId={document._id} />

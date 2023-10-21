@@ -353,3 +353,44 @@ export const removeCoverImage = mutation({
     return document
   },
 })
+
+export const getParentDocs = query({
+  args: {
+    childDocumentId: v.id('documents'),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+
+    if (!identity) {
+      throw new Error('Not authenticated')
+    }
+
+    const userId = identity.subject
+
+    const childDocument = await ctx.db.get(args.childDocumentId)
+
+    if (!childDocument) {
+      throw new Error('Not found')
+    }
+
+    if (childDocument.userId !== userId) {
+      throw new Error('Unauthorized')
+    }
+
+    const documents = [childDocument]
+
+    const recursiveParents = async (id: Id<'documents'>) => {
+      const parentDocument = await ctx.db.get(id)
+      if (!parentDocument) return
+      documents.push(parentDocument)
+      if (!parentDocument.parentDocument) return
+      await recursiveParents(parentDocument.parentDocument)
+    }
+
+    if (childDocument.parentDocument) {
+      await recursiveParents(childDocument.parentDocument)
+    }
+
+    return documents.reverse()
+  },
+})
