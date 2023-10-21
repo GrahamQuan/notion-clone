@@ -13,7 +13,7 @@ interface EditorProps {
   editable?: boolean
 }
 
-const Editor = ({ onChange, initialContent, editable }: EditorProps) => {
+const Editor = ({ onChange, initialContent, editable = true }: EditorProps) => {
   const { resolvedTheme } = useTheme()
   const { edgestore } = useEdgeStore()
 
